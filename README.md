@@ -88,6 +88,11 @@ reverse:
 - name: Aliyun-Bucket
   expression: response.body.bcontains(b".aliyuncs.com</HostId>")
 ```
+从 0.2.0 版本起，命令行新增了 `-filter` 参数，使用时如果包含引号需要注意（个人测试发现：双引号会被终端清除，使用单引号则正常）， `-filter` 命令行使用方式如下
+```bash
+vaycat -target target.txt -filter response.body.bcontains(b'.aliyuncs.com</HostId>')
+```
+
 ### PoC模块
 兼容[xray](https://github.com/chaitin/xray)项目的**PoC**语法（兼容性未全面测试，特别是反连平台效果），只需要在原有的**PoC**配置中添加 `filter_expr` 配置，即可使用**xray**的**PoC**，这里使用如上的**用友NC**指纹作为例子：
 ```yaml
