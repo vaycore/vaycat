@@ -8,9 +8,11 @@
 
 ## 使用方式
 
-使用 `-help` 或 `-h` 查看帮助信息
+查看帮助信息
 
-![image.png](https://cdn.nlark.com/yuque/0/2021/png/12501780/1625890605609-1ca76851-27fb-49ec-85fa-0abd907e9e5d.png#align=left&display=inline&height=295&margin=%5Bobject%20Object%5D&name=image.png&originHeight=590&originWidth=750&size=499775&status=done&style=stroke&width=375)
+```bash
+vaycat -help
+```
 
 执行如下命令生成默认配置文件(如果相应配置文件已存在，不会覆盖已有文件)
 ```bash
@@ -32,10 +34,11 @@ threads: 50
 max_qps: 99999
 # 是否启用poc扫描
 poc_enabled: true
-# 相关路径配置，支持相对路径或者绝对路径
+# 指纹库路径配置，支持相对路径或者绝对路径
 fingerprint_path: /path/to/fingerprint.yml
+# 黑名单路径配置，支持相对路径或者绝对路径
 blacklist_path: /path/to/blacklist.yml
-# PoC配置，会自动扫描该目录下的所有文件及子目录下的所有.yml文件
+# PoC路径配置，会自动扫描该目录下的所有文件及子目录下的所有.yml文件
 pocs_path: /path/to/pocs/
 # 端口配置，支持范围配置
 ports: [80-90, 300, 443, 591, 593, 832, 888, 981, 1010, 1311, 2082,
@@ -53,7 +56,9 @@ request:
   allow_redirects: true
   # 最大重定向次数
   max_redirects_count: 10
-  # 配置代理，格式：IP:PORT
+  # 0.3.0 版本新增重试次数
+  max_retry_count: 3
+  # 配置代理，格式：IP:PORT(或者[http|https]://IP:PORT)
   proxy: ""
   headers:
     Accept: '*/*'
@@ -88,7 +93,7 @@ reverse:
 - name: Aliyun-Bucket
   expression: response.body.bcontains(b".aliyuncs.com</HostId>")
 ```
-从 0.2.0 版本起，命令行新增了 `-filter` 参数，使用时如果包含引号需要注意（个人测试发现：双引号会被终端清除，使用单引号则正常）， `-filter` 命令行使用方式如下
+从 0.2.0 版本起，命令行新增了 `-filter` 参数，使用时如果包含引号需要注意， `-filter` 命令行使用方式如下
 ```bash
 vaycat -target target.txt -filter response.body.bcontains(b'.aliyuncs.com</HostId>')
 ```
@@ -115,6 +120,46 @@ filter_expr: fp.application.contains("用友NC")
 无图无真相，PoC扫描结果如下
 
 ![image.png](https://cdn.nlark.com/yuque/0/2021/png/12501780/1625919672796-9d803819-9d00-4969-8dca-9dae34e47fa2.png#align=left&display=inline&height=299&margin=%5Bobject%20Object%5D&name=image.png&originHeight=398&originWidth=806&size=182515&status=done&style=stroke&width=605)
+
+#### 新增Paths配置
+
+0.3.0版本后，在rules配置中新增了paths配置，典型的例子是**用于爆破备份文件**
+
+```yaml
+name: backup
+set:
+  domain: request.url.domain
+rules:
+  - method: GET
+    paths:
+      - /web.zip
+      - /{{domain}}.zip
+      - /www.zip
+      - /bin.zip
+      - /ROOT.zip
+      - /ROOT.war
+      - /tmp.zip
+    headers:
+      User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36
+      Referer: https://www.baidu.com/
+      Accept-Language: en
+      Accept-Encoding: gzip, deflate
+      Connection: Keep-Alive
+      Range: bytes=0-10240
+    expression: >
+      (response.status == 200 || response.status == 206) &&
+      int(response.headers["Content-Length"]) > 1024 &&
+      (response.headers["Content-Type"].icontains("application/zip") ||
+      response.headers["Content-Type"].icontains("application/octet-stream"))
+
+```
+
+0.3.0修改了-poc命令行参数使用方式，对于如上不指定 `filter_expr` 的PoC，可使用参数指定运行当前PoC，例如：
+
+```bash
+vaycat -target target.txt -poc /path/to/bak.yml
+```
+
 ## 辅助功能
 目前只有一个小功能，后续会慢慢添加更多有意思的辅助功能
 ### hash
