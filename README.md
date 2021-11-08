@@ -22,11 +22,12 @@ vaycat -init
 ```bash
 vaycat -config /path/to/config.yml
 ```
-开始一次扫描
+### 开始一次扫描
+使用 `-target` 参数指定一个目标文件
 ```bash
 vaycat -target targets.txt
 ```
-或者（0.4.0版本后添加了命令行-host参数）
+或者（0.4.0版本后添加了命令行 `-host` 参数）
 ```bash
 vaycat -host 119.11.22.1/24
 ```
