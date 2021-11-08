@@ -26,6 +26,10 @@ vaycat -config /path/to/config.yml
 ```bash
 vaycat -target targets.txt
 ```
+或者（0.4.0版本后添加了命令行-host参数）
+```bash
+vaycat -host 119.11.22.1/24
+```
 ### 配置文件说明
 配置文件相比**bscan**来说，增删了些配置
 ```yaml
@@ -65,6 +69,10 @@ request:
     Accept-Language: en
     User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36
     Cookie: rememberMe=test
+  # 0.4.0 版本新增不允许访问的 hostname 列表配置
+  hostname_disallowed:
+    - '*google*'
+    - '*github*'
 
 # ceye.io反连平台配置
 reverse:
@@ -158,6 +166,20 @@ rules:
 
 ```bash
 vaycat -target target.txt -poc /path/to/bak.yml
+```
+
+#### 新增host命令行参数
+
+0.4.0版本后，在命令行新增了 `-host` 参数，可直接在命令行指定扫描的目标，支持的格式如下
+
+```
+http(s)://x.com
+http(s)://x.com:8080
+x.com
+x.com:8080
+192.168.1.1,192.168.1.2
+192.168.1.1-255、192.168.1.1-192.168.1.255
+192.168.1.1/24
 ```
 
 ## 辅助功能
